@@ -74,7 +74,6 @@ static void MX_CAN1_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 void ADC_channel_select(int channel);
-void shiftOut(uint8_t *data, uint16_t size);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -142,48 +141,44 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-  uint8_t spi_data[2] = {0x00, 0x00};
-  shiftOut(spi_data, 2);
+
+  shift_reg_init(&hspi1, ShiftReg_Latch_GPIO_Port, ShiftReg_Latch_Pin);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	hvil_out = HAL_GPIO_ReadPin(GPIOE, HVIL_OUT_OBSERVE_Pin);
-	hvil_logic = HAL_GPIO_ReadPin(GPIOE, HVIL_LOGIC_OBSERVE_Pin);
-	hvil_in = HAL_GPIO_ReadPin(GPIOE, HVIL_IN_OBSERVE_Pin);
-	brakes_on = !HAL_GPIO_ReadPin(GPIOE, N_BRAKES_ON_Pin);
-	bad_range = HAL_GPIO_ReadPin(GPIOE, RANGE_ANOMALY_Pin);
+	  hvil_out = HAL_GPIO_ReadPin(GPIOE, HVIL_OUT_OBSERVE_Pin);
+	  hvil_logic = HAL_GPIO_ReadPin(GPIOE, HVIL_LOGIC_OBSERVE_Pin);
+	  hvil_in = HAL_GPIO_ReadPin(GPIOE, HVIL_IN_OBSERVE_Pin);
+	  brakes_on = !HAL_GPIO_ReadPin(GPIOE, N_BRAKES_ON_Pin);
 
-	if (bad_range)
-	{
-//	  Error_Handler();
-	}
+//	  if (HAL_GPIO_ReadPin(GPIOE, RANGE_ANOMALY_Pin)) {
+//		  Error_Handler();
+//	  }
 
-	/* Read pedal sensor values from ADC */
-	for (int i = 0; i < 4; i++)
-	{
-	  HAL_ADC_Start(&hadc1);
-	  ADC_channel_select(sensor_channels[i]);
-	  HAL_ADC_PollForConversion(&hadc1, ADC_TIMEOUT_MS);
-	  pedal_vals[i] = HAL_ADC_GetValue(&hadc1);
-	  HAL_ADC_Stop(&hadc1);
-	}
-
-	pedal_vals[4] = brakes_on;
+	  /* Read pedal sensor values from ADC */
+	  for (int i = 0; i < 4; i++) {
+		  HAL_ADC_Start(&hadc1);
+		  ADC_channel_select(sensor_channels[i]);
+		  HAL_ADC_PollForConversion(&hadc1, ADC_TIMEOUT_MS);
+		  pedal_vals[i] = HAL_ADC_GetValue(&hadc1);
+		  HAL_ADC_Stop(&hadc1);
+	  }
+	  pedal_vals[4] = brakes_on;
 
 
-	for (int i = 0; i < 5; i++) {
-		TxData[i] = 10 * i;
-	}
-
-	HAL_Delay(1);	// so that the CAN transmissions don't pile up
-	if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
-		HAL_GPIO_WritePin(GPIOA, DEBUG_LED_1_Pin, GPIO_PIN_SET);
+	  for (int i = 0; i < 5; i++) {
+		  TxData[i] = 10 * i;
+	  }
+	  HAL_Delay(1);	// so that the CAN transmissions don't pile up
+	  if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
+		  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_1_Pin, GPIO_PIN_SET);
 	//	   Error_Handler ();
-	}
+	  }
 
+	  shift_reg_display(12, 0, 0);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -405,7 +400,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_2_Pin|DEBUG_LED_1_Pin|ShiftReg_Latch_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_0_Pin|DEBUG_LED_1_Pin|ShiftReg_Latch_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : HVIL_OUT_OBSERVE_Pin HVIL_IN_OBSERVE_Pin HVIL_LOGIC_OBSERVE_Pin RANGE_ANOMALY_Pin */
   GPIO_InitStruct.Pin = HVIL_OUT_OBSERVE_Pin|HVIL_IN_OBSERVE_Pin|HVIL_LOGIC_OBSERVE_Pin|RANGE_ANOMALY_Pin;
@@ -427,8 +422,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DEBUG_LED_2_Pin DEBUG_LED_1_Pin */
-  GPIO_InitStruct.Pin = DEBUG_LED_2_Pin|DEBUG_LED_1_Pin;
+  /*Configure GPIO pins : DEBUG_LED_0_Pin DEBUG_LED_1_Pin */
+  GPIO_InitStruct.Pin = DEBUG_LED_0_Pin|DEBUG_LED_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -458,14 +453,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void shiftOut(uint8_t *data, uint16_t size) {
-	// set latch pin to low
-	HAL_GPIO_WritePin(ShiftReg_Latch_GPIO_Port, ShiftReg_Latch_Pin, GPIO_PIN_RESET);
-	// write using SPI
-	HAL_SPI_Transmit(&hspi1, data, size, 100);
-	// once data is ready set latch pin to high
-	HAL_GPIO_WritePin(ShiftReg_Latch_GPIO_Port, ShiftReg_Latch_Pin, GPIO_PIN_SET);
-}
 /* USER CODE END 4 */
 
 /**

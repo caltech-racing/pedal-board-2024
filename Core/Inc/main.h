@@ -67,8 +67,8 @@ void Error_Handler(void);
 #define N_HVIL_RESET_GPIO_Port GPIOE
 #define HVIL_LOGIC_OBSERVE_Pin GPIO_PIN_6
 #define HVIL_LOGIC_OBSERVE_GPIO_Port GPIOE
-#define DEBUG_LED_2_Pin GPIO_PIN_0
-#define DEBUG_LED_2_GPIO_Port GPIOA
+#define DEBUG_LED_0_Pin GPIO_PIN_0
+#define DEBUG_LED_0_GPIO_Port GPIOA
 #define BTN2_EXTI_Pin GPIO_PIN_1
 #define BTN2_EXTI_GPIO_Port GPIOA
 #define BTN1_EXTI_Pin GPIO_PIN_2
