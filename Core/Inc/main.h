@@ -75,16 +75,16 @@ void Error_Handler(void);
 #define BTN1_EXTI_GPIO_Port GPIOA
 #define DEBUG_LED_1_Pin GPIO_PIN_3
 #define DEBUG_LED_1_GPIO_Port GPIOA
-#define DEBUG_SCK_Pin GPIO_PIN_5
-#define DEBUG_SCK_GPIO_Port GPIOA
-#define DEBUG_CS_Pin GPIO_PIN_6
-#define DEBUG_CS_GPIO_Port GPIOA
+#define ShiftReg_CLK_Pin GPIO_PIN_5
+#define ShiftReg_CLK_GPIO_Port GPIOA
+#define ShiftReg_Latch_Pin GPIO_PIN_6
+#define ShiftReg_Latch_GPIO_Port GPIOA
 #define N_BRAKES_ON_Pin GPIO_PIN_14
 #define N_BRAKES_ON_GPIO_Port GPIOE
 #define RANGE_ANOMALY_Pin GPIO_PIN_15
 #define RANGE_ANOMALY_GPIO_Port GPIOE
-#define DEBUG_MOSI_Pin GPIO_PIN_5
-#define DEBUG_MOSI_GPIO_Port GPIOB
+#define ShiftReg_MOSI_Pin GPIO_PIN_5
+#define ShiftReg_MOSI_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

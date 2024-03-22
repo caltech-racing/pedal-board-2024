@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "74hc595.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -74,6 +74,7 @@ static void MX_CAN1_Init(void);
 static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 void ADC_channel_select(int channel);
+void shiftOut(uint8_t *data, uint16_t size);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,20 +93,12 @@ void ADC_channel_select(int channel)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if (GPIO_Pin == GPIO_PIN_1 || GPIO_Pin == GPIO_PIN_2)
-	{
-		TxData[0] = 1;
-		TxData[1] = 10;
-		TxData[2] = 100;
-		TxData[3] = 200;
-		TxData[4] = 0;
-	}
+	/* some sort of interrupt callback for the buttons*/
 }
 
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-//	HAL_GPIO_TogglePin(GPIOA, DEBUG_LED_2_Pin);
 	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);	// don't delay after this!
 }
 /* USER CODE END 0 */
@@ -126,7 +119,11 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  TxHeader.IDE = CAN_ID_STD;
+  TxHeader.StdId = 0x466;
+  TxHeader.RTR = CAN_RTR_DATA;
+  TxHeader.DLC = 5;
+  TxHeader.TransmitGlobalTime = DISABLE;
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -143,24 +140,16 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-
-  TxHeader.IDE = CAN_ID_STD;
-  TxHeader.StdId = 0x466;
-  TxHeader.RTR = CAN_RTR_DATA;
-  TxHeader.DLC = 5;
-  TxHeader.TransmitGlobalTime = DISABLE;
+  HAL_CAN_Start(&hcan1);
+  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+  uint8_t spi_data[2] = {0x00, 0x00};
+  shiftOut(spi_data, 2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_CAN_Start(&hcan1);
-
-//  HAL_CAN_ActivateNotification(&hcan1, CAN)
-
-  long int loop_counter = 0;
   while (1)
   {
-	  loop_counter++;
 	hvil_out = HAL_GPIO_ReadPin(GPIOE, HVIL_OUT_OBSERVE_Pin);
 	hvil_logic = HAL_GPIO_ReadPin(GPIOE, HVIL_LOGIC_OBSERVE_Pin);
 	hvil_in = HAL_GPIO_ReadPin(GPIOE, HVIL_IN_OBSERVE_Pin);
@@ -184,34 +173,17 @@ int main(void)
 
 	pedal_vals[4] = brakes_on;
 
-	for (int i = 0; i < 5; i++)
-	{
-		pedal_vals[i] = i * 500;
-	}
-//	HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 
-	TxData[0] = 1;
-	TxData[1] = 10;
-	TxData[2] = 100;
-	TxData[3] = 200;
-	TxData[4] = 0;
-	if (1) {
-		HAL_Delay(500);
-		if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, pedal_vals, &TxMailbox) != HAL_OK)
-		{
-		   HAL_GPIO_WritePin(GPIOA, DEBUG_LED_1_Pin, GPIO_PIN_SET);
+	for (int i = 0; i < 5; i++) {
+		TxData[i] = 10 * i;
+	}
+
+	HAL_Delay(1);	// so that the CAN transmissions don't pile up
+	if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
+		HAL_GPIO_WritePin(GPIOA, DEBUG_LED_1_Pin, GPIO_PIN_SET);
 	//	   Error_Handler ();
-		}
-		HAL_GPIO_TogglePin(GPIOA, DEBUG_LED_2_Pin);
-//		HAL_GPIO_WritePin(GPIOA, DEBUG_LED_2_Pin, GPIO_PIN_RESET);
-	} else {
-//		HAL_GPIO_WritePin(GPIOA, DEBUG_LED_2_Pin, GPIO_PIN_RESET);
 	}
 
-//	HAL_GPIO_WritePin(GPIOA, DEBUG_LED_2_Pin, GPIO_PIN_SET);
-//	HAL_Delay(500);
-//	HAL_GPIO_WritePin(GPIOA, DEBUG_LED_2_Pin, GPIO_PIN_RESET);
-//	HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -393,7 +365,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -433,7 +405,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_2_Pin|DEBUG_LED_1_Pin|DEBUG_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_2_Pin|DEBUG_LED_1_Pin|ShiftReg_Latch_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : HVIL_OUT_OBSERVE_Pin HVIL_IN_OBSERVE_Pin HVIL_LOGIC_OBSERVE_Pin RANGE_ANOMALY_Pin */
   GPIO_InitStruct.Pin = HVIL_OUT_OBSERVE_Pin|HVIL_IN_OBSERVE_Pin|HVIL_LOGIC_OBSERVE_Pin|RANGE_ANOMALY_Pin;
@@ -468,12 +440,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : DEBUG_CS_Pin */
-  GPIO_InitStruct.Pin = DEBUG_CS_Pin;
+  /*Configure GPIO pin : ShiftReg_Latch_Pin */
+  GPIO_InitStruct.Pin = ShiftReg_Latch_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(DEBUG_CS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(ShiftReg_Latch_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : N_BRAKES_ON_Pin */
   GPIO_InitStruct.Pin = N_BRAKES_ON_Pin;
@@ -486,7 +458,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void shiftOut(uint8_t *data, uint16_t size) {
+	// set latch pin to low
+	HAL_GPIO_WritePin(ShiftReg_Latch_GPIO_Port, ShiftReg_Latch_Pin, GPIO_PIN_RESET);
+	// write using SPI
+	HAL_SPI_Transmit(&hspi1, data, size, 100);
+	// once data is ready set latch pin to high
+	HAL_GPIO_WritePin(ShiftReg_Latch_GPIO_Port, ShiftReg_Latch_Pin, GPIO_PIN_SET);
+}
 /* USER CODE END 4 */
 
 /**
