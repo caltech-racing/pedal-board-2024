@@ -46,8 +46,6 @@ ADC_HandleTypeDef hadc1;
 
 CAN_HandleTypeDef hcan1;
 
-SPI_HandleTypeDef hspi1;
-
 /* USER CODE BEGIN PV */
 enum {
 	APPS1_CHANNEL=ADC_CHANNEL_7,
@@ -71,7 +69,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_CAN1_Init(void);
-static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 void ADC_channel_select(int channel);
 /* USER CODE END PFP */
@@ -93,6 +90,7 @@ void ADC_channel_select(int channel)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	/* some sort of interrupt callback for the buttons*/
+	HAL_GPIO_TogglePin(GPIOA, DEBUG_LED_0_Pin);
 }
 
 
@@ -137,12 +135,12 @@ int main(void)
   MX_ADC1_Init();
   MX_CAN1_Init();
   MX_USB_DEVICE_Init();
-  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 
-  shift_reg_init(&hspi1, ShiftReg_Latch_GPIO_Port, ShiftReg_Latch_Pin);
+  shift_reg_init(ShiftRegSHCP_GPIO_Port, ShiftRegSTCP_GPIO_Port, ShiftRegDAT_GPIO_Port,
+                 ShiftRegSHCP_Pin, ShiftRegSTCP_Pin, ShiftRegDAT_Pin);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -154,11 +152,11 @@ int main(void)
 	  hvil_in = HAL_GPIO_ReadPin(GPIOE, HVIL_IN_OBSERVE_Pin);
 	  brakes_on = !HAL_GPIO_ReadPin(GPIOE, N_BRAKES_ON_Pin);
 
-//	  if (HAL_GPIO_ReadPin(GPIOE, RANGE_ANOMALY_Pin)) {
+	  if (HAL_GPIO_ReadPin(GPIOE, RANGE_ANOMALY_Pin)) {
 //		  Error_Handler();
-//	  }
+	  }
 
-	  /* Read pedal sensor values from ADC */
+	  /* Read petal sensor values from ADC */
 	  for (int i = 0; i < 4; i++) {
 		  HAL_ADC_Start(&hadc1);
 		  ADC_channel_select(sensor_channels[i]);
@@ -172,13 +170,15 @@ int main(void)
 	  for (int i = 0; i < 5; i++) {
 		  TxData[i] = 10 * i;
 	  }
+
 	  HAL_Delay(1);	// so that the CAN transmissions don't pile up
 	  if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
 		  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_1_Pin, GPIO_PIN_SET);
 	//	   Error_Handler ();
 	  }
+//	  HAL_GPIO_WritePin(DEBUG_LED_0_GPIO_Port, DEBUG_LED_0_Pin, GPIO_PIN_SET);
 
-	  shift_reg_display(12, 0, 0);
+	  shift_reg_display(00, DP1, DP2);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -338,44 +338,6 @@ static void MX_CAN1_Init(void)
 }
 
 /**
-  * @brief SPI1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI1_Init(void)
-{
-
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -400,7 +362,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_0_Pin|DEBUG_LED_1_Pin|ShiftReg_Latch_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_0_Pin|DEBUG_LED_1_Pin|ShiftRegDAT_Pin|ShiftRegSHCP_Pin
+                          |ShiftRegSTCP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : HVIL_OUT_OBSERVE_Pin HVIL_IN_OBSERVE_Pin HVIL_LOGIC_OBSERVE_Pin RANGE_ANOMALY_Pin */
   GPIO_InitStruct.Pin = HVIL_OUT_OBSERVE_Pin|HVIL_IN_OBSERVE_Pin|HVIL_LOGIC_OBSERVE_Pin|RANGE_ANOMALY_Pin;
@@ -429,18 +392,18 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BTN2_EXTI_Pin BTN1_EXTI_Pin */
-  GPIO_InitStruct.Pin = BTN2_EXTI_Pin|BTN1_EXTI_Pin;
+  /*Configure GPIO pins : BTN0_EXTI_Pin BTN1_EXTI_Pin */
+  GPIO_InitStruct.Pin = BTN0_EXTI_Pin|BTN1_EXTI_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : ShiftReg_Latch_Pin */
-  GPIO_InitStruct.Pin = ShiftReg_Latch_Pin;
+  /*Configure GPIO pins : ShiftRegDAT_Pin ShiftRegSHCP_Pin ShiftRegSTCP_Pin */
+  GPIO_InitStruct.Pin = ShiftRegDAT_Pin|ShiftRegSHCP_Pin|ShiftRegSTCP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(ShiftReg_Latch_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : N_BRAKES_ON_Pin */
   GPIO_InitStruct.Pin = N_BRAKES_ON_Pin;

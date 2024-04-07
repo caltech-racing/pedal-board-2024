@@ -69,22 +69,22 @@ void Error_Handler(void);
 #define HVIL_LOGIC_OBSERVE_GPIO_Port GPIOE
 #define DEBUG_LED_0_Pin GPIO_PIN_0
 #define DEBUG_LED_0_GPIO_Port GPIOA
-#define BTN2_EXTI_Pin GPIO_PIN_1
-#define BTN2_EXTI_GPIO_Port GPIOA
+#define BTN0_EXTI_Pin GPIO_PIN_1
+#define BTN0_EXTI_GPIO_Port GPIOA
 #define BTN1_EXTI_Pin GPIO_PIN_2
 #define BTN1_EXTI_GPIO_Port GPIOA
 #define DEBUG_LED_1_Pin GPIO_PIN_3
 #define DEBUG_LED_1_GPIO_Port GPIOA
-#define ShiftReg_CLK_Pin GPIO_PIN_5
-#define ShiftReg_CLK_GPIO_Port GPIOA
-#define ShiftReg_Latch_Pin GPIO_PIN_6
-#define ShiftReg_Latch_GPIO_Port GPIOA
+#define ShiftRegDAT_Pin GPIO_PIN_4
+#define ShiftRegDAT_GPIO_Port GPIOA
+#define ShiftRegSHCP_Pin GPIO_PIN_5
+#define ShiftRegSHCP_GPIO_Port GPIOA
+#define ShiftRegSTCP_Pin GPIO_PIN_6
+#define ShiftRegSTCP_GPIO_Port GPIOA
 #define N_BRAKES_ON_Pin GPIO_PIN_14
 #define N_BRAKES_ON_GPIO_Port GPIOE
 #define RANGE_ANOMALY_Pin GPIO_PIN_15
 #define RANGE_ANOMALY_GPIO_Port GPIOE
-#define ShiftReg_MOSI_Pin GPIO_PIN_5
-#define ShiftReg_MOSI_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
