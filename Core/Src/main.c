@@ -97,8 +97,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
 	int retval = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);	// don't delay after this!
-    shift_reg_display(RxData[0], DP_OFF, DP_OFF);
-    return;
+    shift_reg_display(RxData[4], DP_OFF, DP_OFF);
 }
 /* USER CODE END 0 */
 
@@ -171,8 +170,8 @@ int main(void)
 
 
 	  for (int i = 0; i < 5; i++) {
-//		  TxData[i] = pedal_vals[i];
-		  TxData[i] = i + 9;
+		  TxData[i] = pedal_vals[i];
+//		  TxData[i] = i + 9;
 	  }
 
 	  HAL_Delay(1);	// so that the CAN transmissions don't pile up
@@ -182,10 +181,10 @@ int main(void)
 	  }
 
 	  // Number cycling demo
-	  for (int i = 100; i > 0; i--){
-          shift_reg_display(i, DP_OFF, DP_2);
-          HAL_Delay(100);
-	  }
+//	  for (int i = 100; i > 0; i--){
+//          shift_reg_display(i, DP_OFF, DP_2);
+//          HAL_Delay(100);
+//	  }
 
     /* USER CODE END WHILE */
 

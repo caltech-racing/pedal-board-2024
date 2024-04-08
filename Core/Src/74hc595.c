@@ -63,23 +63,22 @@ void shift_reg_write(const uint8_t *data) {
  */
 int shift_reg_display(uint8_t num, uint8_t dp1, uint8_t dp2) {
 	char num_str[8];
-    uint8_t spi_data[2];
+    uint8_t serial_data[2];
     if (num >= 100) {
 		num = 99;
 	} else if (num < 0) {
         num = 0;
     }
 	itoa(num, num_str, 10);
-	unsigned int len = strlen(num_str);
-	if (len == 1) {
+	if (strlen(num_str) == 1) {
 		// defaults to displaying on the lowest digit
-		spi_data[0] = DIGITS1[num_str[0]-'0'] | dp1;
-		spi_data[1] = dp2;
+		serial_data[0] = DIGITS1[num_str[0] - '0'] | dp1;
+        serial_data[1] = dp2;
 	} else {    // len == 2
-		spi_data[0] = DIGITS1[num_str[1]-'0'] | dp1;
-		spi_data[1] = DIGITS2[num_str[0]-'0'] | dp2;
+		serial_data[0] = DIGITS1[num_str[1] - '0'] | dp1;
+        serial_data[1] = DIGITS2[num_str[0] - '0'] | dp2;
 	}
-    shift_reg_write(spi_data);
+    shift_reg_write(serial_data);
 	return 0;
 }
 
@@ -87,6 +86,6 @@ int shift_reg_display(uint8_t num, uint8_t dp1, uint8_t dp2) {
  * @brief clears the shift registers by writing in all 0s.
  */
 void shift_reg_clear() {
-    uint8_t clear_data[2] = {0, 0};
+    uint8_t clear_data[2] = {0x00, 0x00};
     shift_reg_write(clear_data);
 }
