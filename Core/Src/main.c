@@ -168,7 +168,7 @@ int main(void)
 
 
 	  for (int i = 0; i < 5; i++) {
-		  TxData[i] = 10 * i;
+		  TxData[i] = pedal_vals[i];
 	  }
 
 	  HAL_Delay(1);	// so that the CAN transmissions don't pile up
@@ -176,9 +176,13 @@ int main(void)
 		  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_1_Pin, GPIO_PIN_SET);
 	//	   Error_Handler ();
 	  }
-	  HAL_GPIO_WritePin(DEBUG_LED_0_GPIO_Port, DEBUG_LED_0_Pin, GPIO_PIN_SET);
+//	  HAL_GPIO_WritePin(DEBUG_LED_0_GPIO_Port, DEBUG_LED_0_Pin, GPIO_PIN_SET);
 
-	  shift_reg_display(i, DP1, DP2);
+//	  Number cycling demo
+	  for (int i = 0; i < 100; i++){
+	  shift_reg_display(i, DPOFF, DPOFF);
+	  HAL_Delay(100);
+	  }
 
     /* USER CODE END WHILE */
 

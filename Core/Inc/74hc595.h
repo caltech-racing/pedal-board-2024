@@ -41,6 +41,7 @@ static const uint8_t DIGITS2[10] = {
 
 static const uint8_t DP1 = 0b10000000;
 static const uint8_t DP2 = 0b00001000;
+static const uint8_t DPOFF = 0b00000000;
 
 void shift_reg_init(GPIO_TypeDef *shcp_port, GPIO_TypeDef *stcp_port, GPIO_TypeDef *data_port,
                     uint16_t shcp_pin, uint16_t stcp_pin, uint16_t data_pin);
