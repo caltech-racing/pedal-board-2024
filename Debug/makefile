@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (12.3.rel1)
+# Toolchain: GNU Tools for STM32 (11.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -64,8 +64,8 @@ all: main-build
 main-build: pedal_board.elf secondary-outputs
 
 # Tool invocations
-pedal_board.elf pedal_board.map: $(OBJS) $(USER_OBJS) C:\Users\azadm\git\pedal-board-2024\STM32F412VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "pedal_board.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\azadm\git\pedal-board-2024\STM32F412VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="pedal_board.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+pedal_board.elf pedal_board.map: $(OBJS) $(USER_OBJS) D:\racing\software\pedal_board\STM32F412VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "pedal_board.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\racing\software\pedal_board\STM32F412VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="pedal_board.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

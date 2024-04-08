@@ -10,7 +10,6 @@
 
 #include "main.h"
 /* Register to digit mapping for the first shift register */
-// TODO
 static const uint8_t DIGITS1[10] = {
 		0b01011111,
 		0b01000001,
@@ -25,7 +24,6 @@ static const uint8_t DIGITS1[10] = {
 };
 
 /* Register to digit mapping for the second shift register */
-// TODO
 static const uint8_t DIGITS2[10] = {
 		0b10110111,
 		0b00010100,
@@ -38,13 +36,16 @@ static const uint8_t DIGITS2[10] = {
 		0b11110111,
 		0b11110110
 };
+static const uint8_t DIGITS_CLR = 0xff;
 
-static const uint8_t DP1 = 0b10000000;
-static const uint8_t DP2 = 0b00001000;
-static const uint8_t DPOFF = 0b00000000;
+static const uint8_t DP_1 = 0b10000000;
+static const uint8_t DP_2 = 0b00001000;
+static const uint8_t DP_OFF = 0b00000000;
 
 void shift_reg_init(GPIO_TypeDef *shcp_port, GPIO_TypeDef *stcp_port, GPIO_TypeDef *data_port,
                     uint16_t shcp_pin, uint16_t stcp_pin, uint16_t data_pin);
+void shift_reg_write(const uint8_t *data);
 int shift_reg_display(uint8_t num, uint8_t dp1, uint8_t dp2);
+void shift_reg_clear();
 
 #endif /* _INC_74HC595_H */

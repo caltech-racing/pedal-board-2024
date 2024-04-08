@@ -53,7 +53,7 @@ enum {
 	BSE1_CHANNEL=ADC_CHANNEL_14,
 	BSE2_CHANNEL=ADC_CHANNEL_7,
 };
-const uint32_t sensor_channels[] = {APPS1_CHANNEL, APPS2_CHANNEL, BSE1_CHANNEL, BSE2_CHANNEL};
+const int sensor_channels[] = {APPS1_CHANNEL, APPS2_CHANNEL, BSE1_CHANNEL, BSE2_CHANNEL};
 
 uint8_t 				hvil_out, hvil_logic, hvil_in, btn1_pressed, btn2_pressed, brakes_on, bad_range;
 uint8_t					TxData[5];
@@ -96,7 +96,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);	// don't delay after this!
+	int retval = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);	// don't delay after this!
+    shift_reg_display(RxData[0], DP_OFF, DP_OFF);
+    return;
 }
 /* USER CODE END 0 */
 
@@ -136,8 +138,9 @@ int main(void)
   MX_CAN1_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  HAL_CAN_Start(&hcan1);
-  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+    HAL_CAN_Start(&hcan1);
+    HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+    HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO1_MSG_PENDING);
 
   shift_reg_init(ShiftRegSHCP_GPIO_Port, ShiftRegSTCP_GPIO_Port, ShiftRegDAT_GPIO_Port,
                  ShiftRegSHCP_Pin, ShiftRegSTCP_Pin, ShiftRegDAT_Pin);
@@ -168,28 +171,28 @@ int main(void)
 
 
 	  for (int i = 0; i < 5; i++) {
-		  TxData[i] = pedal_vals[i];
+//		  TxData[i] = pedal_vals[i];
+		  TxData[i] = i + 9;
 	  }
 
 	  HAL_Delay(1);	// so that the CAN transmissions don't pile up
 	  if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
-		  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_1_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(DEBUG_LED_1_GPIO_Port, DEBUG_LED_1_Pin, GPIO_PIN_SET);
 	//	   Error_Handler ();
 	  }
-//	  HAL_GPIO_WritePin(DEBUG_LED_0_GPIO_Port, DEBUG_LED_0_Pin, GPIO_PIN_SET);
 
-//	  Number cycling demo
-	  for (int i = 0; i < 100; i++){
-	  shift_reg_display(i, DPOFF, DPOFF);
-	  HAL_Delay(100);
+	  // Number cycling demo
+	  for (int i = 100; i > 0; i--){
+          shift_reg_display(i, DP_OFF, DP_2);
+          HAL_Delay(100);
 	  }
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
-}
   /* USER CODE END 3 */
+}
 
 /**
   * @brief System Clock Configuration
