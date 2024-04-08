@@ -176,15 +176,16 @@ int main(void)
 		  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_1_Pin, GPIO_PIN_SET);
 	//	   Error_Handler ();
 	  }
-//	  HAL_GPIO_WritePin(DEBUG_LED_0_GPIO_Port, DEBUG_LED_0_Pin, GPIO_PIN_SET);
+	  HAL_GPIO_WritePin(DEBUG_LED_0_GPIO_Port, DEBUG_LED_0_Pin, GPIO_PIN_SET);
 
-	  shift_reg_display(00, DP1, DP2);
+	  shift_reg_display(i, DP1, DP2);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
-  /* USER CODE END 3 */
 }
+  /* USER CODE END 3 */
 
 /**
   * @brief System Clock Configuration

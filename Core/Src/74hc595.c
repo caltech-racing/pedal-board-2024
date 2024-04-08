@@ -54,16 +54,16 @@ int shift_reg_display(uint8_t num, uint8_t dp1, uint8_t dp2) {
 	uint8_t spi_data[2];
 	if (len == 1) {
 		// defaults to displaying on the lowest digit
-		spi_data[0] = DIGITS2[num_str[0]-'0'] | dp1;
+		spi_data[0] = DIGITS1[num_str[0]-'0'] | dp1;
 		spi_data[1] = dp2;
 	} else if (len == 2) {
-		spi_data[0] = DIGITS2[num_str[1]-'0'] | dp2;
-		spi_data[1] = DIGITS1[num_str[0]-'0'] | dp1;
+		spi_data[0] = DIGITS1[num_str[1]-'0'] | dp1;
+		spi_data[1] = DIGITS2[num_str[0]-'0'] | dp2;
 	} else {
 		return -1;
 	}
-	spi_data[0] = 1;
-	spi_data[1] = 1;
+//	spi_data[0] = 128;
+//	spi_data[1] = dp2;
 	// set stcp (storage clock) pin to low, as the data goes to the storage register
     // on the rising edge of the clock
 	HAL_GPIO_WritePin(sr_stcp_port, sr_stcp_pin, GPIO_PIN_RESET);

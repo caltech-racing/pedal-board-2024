@@ -1,0 +1,2 @@
+../Core/Src/74hc595.c:28:6:shift_reg_init	1
+../Core/Src/74hc595.c:47:5:shift_reg_display	6
