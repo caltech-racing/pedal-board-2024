@@ -36,7 +36,6 @@ static const uint8_t DIGITS2[10] = {
 		0b11110111,
 		0b11110110
 };
-static const uint8_t DIGITS_CLR = 0xff;
 
 static const uint8_t DP_1 = 0b10000000;
 static const uint8_t DP_2 = 0b00001000;
