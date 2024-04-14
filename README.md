@@ -1,3 +1,3 @@
-Caltech Racing 2024
-Pedal Board STM32 Code
-Author: Gavin Hua
+# Caltech Racing 2024
+## Pedal Board STM32 Code
+## Author: Gavin Hua
