@@ -1,3 +1,4 @@
 ../Core/Src/74hc595.c:23:6:shift_reg_init	24	static
-../Core/Src/74hc595.c:43:5:shift_reg_display	48	static
-../Core/Src/74hc595.c:85:6:shift_reg_clear	16	static
+../Core/Src/74hc595.c:39:6:shift_reg_write	32	static
+../Core/Src/74hc595.c:64:5:shift_reg_display	32	static
+../Core/Src/74hc595.c:88:6:shift_reg_clear	16	static

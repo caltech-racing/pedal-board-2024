@@ -83,14 +83,18 @@ void ADC_channel_select(int channel)
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
-    Error_Handler();
+    // Error_Handler();
   }
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	/* some sort of interrupt callback for the buttons*/
-	HAL_GPIO_TogglePin(GPIOA, DEBUG_LED_0_Pin);
+	HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
+        HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+    } else {
+        HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+    }
 }
 
 
@@ -171,21 +175,10 @@ int main(void)
 
 	  for (int i = 0; i < 5; i++) {
 		  TxData[i] = pedal_vals[i];
-//		  TxData[i] = i + 9;
 	  }
 
 	  HAL_Delay(1);	// so that the CAN transmissions don't pile up
-	  if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
-		  HAL_GPIO_WritePin(DEBUG_LED_1_GPIO_Port, DEBUG_LED_1_Pin, GPIO_PIN_SET);
-	//	   Error_Handler ();
-	  }
-
-	  // Number cycling demo
-//	  for (int i = 100; i > 0; i--){
-//          shift_reg_display(i, DP_OFF, DP_2);
-//          HAL_Delay(100);
-//	  }
-
+	  HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -312,7 +305,7 @@ static void MX_CAN1_Init(void)
   /* USER CODE END CAN1_Init 1 */
   hcan1.Instance = CAN1;
   hcan1.Init.Prescaler = 18;
-  hcan1.Init.Mode = CAN_MODE_LOOPBACK;
+  hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
   hcan1.Init.TimeSeg1 = CAN_BS1_2TQ;
   hcan1.Init.TimeSeg2 = CAN_BS2_1TQ;
@@ -369,7 +362,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DEBUG_LED_0_Pin|DEBUG_LED_1_Pin|ShiftRegDAT_Pin|ShiftRegSHCP_Pin
+  HAL_GPIO_WritePin(GPIOA, LED2_Pin|LED1_Pin|ShiftRegDAT_Pin|ShiftRegSHCP_Pin
                           |ShiftRegSTCP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : HVIL_OUT_OBSERVE_Pin HVIL_IN_OBSERVE_Pin HVIL_LOGIC_OBSERVE_Pin RANGE_ANOMALY_Pin */
@@ -392,15 +385,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DEBUG_LED_0_Pin DEBUG_LED_1_Pin */
-  GPIO_InitStruct.Pin = DEBUG_LED_0_Pin|DEBUG_LED_1_Pin;
+  /*Configure GPIO pins : LED2_Pin LED1_Pin */
+  GPIO_InitStruct.Pin = LED2_Pin|LED1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BTN0_EXTI_Pin BTN1_EXTI_Pin */
-  GPIO_InitStruct.Pin = BTN0_EXTI_Pin|BTN1_EXTI_Pin;
+  /*Configure GPIO pins : Button0_Pin Button1_Pin */
+  GPIO_InitStruct.Pin = Button0_Pin|Button1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -417,6 +410,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(N_BRAKES_ON_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
